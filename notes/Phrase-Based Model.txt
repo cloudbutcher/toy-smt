@@ -1,0 +1,96 @@
+First define phrase-based lexicon:
+Definition 1 (Phrase-based lexicon) A phrase-based lexicon L is a set of lexical entries, where
+each lexical entry is a tuple (f, e, g) where:
+f is a sequence of one or more foreign words.
+e is a sequence of one or more English words.
+g is a “score” for the lexical entry. The score could be any value in the reals.
+
+Interpretation: (le chien, the dog, 100), this is easy to understand
+
+Learn pbl from translation example:
+``` ONE TRANSLATION MATRIX FOR EVERY TRAINING EXAMPLE```
+translation matrix is easy to understand: l * m. 1 if aligned, 0 otherwise.
+In IBM Model 1&2, alignment is many-to-one. Matrix representation is just make many-to-many
+easy to represent.
+HOW TO DERIVE TRANSLATION MATRIX:
+1, Train IBM M2 using EM, we get p(foreign, alignment | english, m_frenchlength) for ANY English string e & French string f.
+2, FOR EACH TRAINING EXAMPLE, define
+	kth alignment = argmax_a p(kth f, alignments | kth e, kth m_fl)
+	What does that mean? We use kth e & f to get multiple possible alignments. We choose the best one.
+	Which basically means le chien aboide <=> the dog barks we get <1,2,3>
+3, Fill the TRANSLATION MATRIX with what we get from 2. Fill it with 1 if aligned.
+4, Once we get TM, choose all consistent pairs & insert them to lexicon. Increment the count c(e, f) & c(e) at the same time.
+5, Having extracted all lexicon entries, we define the score as the log of maximum likelyhood estimates.
+Oh shit, there is an algorithm for all the things I wrote.
+
+For convenience we introduce a notation p=(s,t,e). p stands for phrase, s&t stands for the substring from sth word 
+to tth word. e stands for the translation in lexicon we find using substring s to t.
+我好高兴。
+(3,4,happy) is a phrase. (高兴, happy, score) is the lexicon we use.
+P is the set of all phrases for centain input x.
+And y is the translation part concatenated as a string. ```I am happy```
+
+VALID DERIVATIONS
+Y(x) is the set of all valid derivations for input x=x1x2..xn.
+And of course Y(x) is the set of finite length sequence of phrases p1p2...pL which satisfies:
+	each pk=(s,t,e) is a member of P. (e.g. we can find e in lexicon using s & t)
+	each word is translated EXACTLY ONCE. NO MORE, NO LESS.
+	|t(pk) - s(p k + 1) + 1| <= d where d >= 0 is a parameter of the PBM. IN ADDITION, we must have
+		|1 - s(p1)| <= d. 
+				s(pk) means the s part of the kth phrase pk. So is t(k).
+	EXPLANATION? NO TWO PHRASES ARE TOO FAR AWAY. AND THE FIRST PHRASE CANNOT BE TOO FAR
+	AWAY FROM THE START POSITION.
+
+derivation is just sequence of phrases.
+
+Then how do we score the derivation??? Which translation is better???
+So our task is to find a function f(y) which assign a score to each possible derivation y in Y(x).
+And in this case, the best translation is argmax_y f(y). EASY.
+
+The scoring function looks creepy.
+
+f(y) = h(e(y)) + SIGMA k=1 to L g(pk) + SIGMA k = 1 to (L - 1) ITA * | t(pk) + 1 - s(p k+1) |
+
+WHAT'S THIS????
+
+h(y) function is just LANGUAGE MODEL. We know e(y) is the translation part concatenated.
+So h(e(y)) is evaluating the possibility of a sentence appearing in the language.
+
+g(pk) is the score for phrase pk. All lexicons contains a score g remember?
+
+ITA is a distortion parameter. Often it is negative so the last part is a penalty to long distance between two
+consecutive phrases.
+
+So, the score = language model score + lexicon score + penalty. EASY.
+
+
+
+DECODING WITH PHRASE-BASED MODELS
+
+All right, we seek argmax_y f(y). NOW WHAT?
+Sadly, this problem is NP-Hard. Gimme a sec, why NP-Hard??? I don't know, skip it for now.
+
+Define a STATE as a tuple (e1, e2, b, r, alpha)
+e1, e2: English words
+b: bit-string of length n (source-language length)
+r: endpoint of the last phrase in the state.
+alpha: state score (every one has a score)
+
+alpha has the same form as the f(y). language model score plus lexicon score plus penalty.
+the state only records two words because we use trigram model. 
+Initial state q0=(*, *, 0^n, 0, 0)
+one step at a time. Next we define a function ph(q), which gives a set of phrases that could be appended to q.
+What should those phrases satisfy?
+p must not overlap with the bit-string b. OH I GET THIS, ONE WORD TRANSLATED EXACTLY ONCE.
+The distortion limit must not be violated. | r + 1 - s(p) | <= d
+In addition, we define next(q, p) to be the state formed by appending p to q.
+
+how to update the five parameters? Well for convenience we define epsilon(-1) = e1, epsilon(0) = e2.
+then e1 & e2 updated to the last two words of the phrase, namely epsilon(M - 1) & epsilon(M).
+Change the correponding position in bit string to 1. More specifically, if i in range(s, t), change bi to 1. Else remains.
+update r to t(p).
+update alpha to alpha prime as:
+alpha prime = alpha + g(p) + SIGMA i = 1 to M logq(epsilon_i | epsilon_i-2, epsilon_i-1) + ITA * | r + 1 - s |
+and we need an auxillary function eq(q, q'). Two states are equal iff e1, e2, b and r are equal.
+
+AND WE'RE READY TO GO!

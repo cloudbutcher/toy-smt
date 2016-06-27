@@ -1,0 +1,6 @@
+Well it seems like if we glue some of the arcs together we get a hypergraph.
+Why? Why don't they just draw many edges towards a single node?
+Well because a hyperedge may contain special meanings for example AND operation.
+
+A B-path P in a B-graph G from a node s to a node t is a minimal subgraph in which
+s, t belongs to Np

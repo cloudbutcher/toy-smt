@@ -1,0 +1,14 @@
+This is actually ML estimates for IBMM2.
+We'd like to estimates vector <t> and <q> that maximizes the L(t, q) function, which is:
+
+<t_ML>, <q_ML> = argmax L(<t>, <q>)
+
+L(<t>, <q>) is actually the log of all product of p(f|e, m; t, q). (Product of all p(f|e,m).)
+Yes we want to maximize the p(f|e,m) on all training data. Because they are correct so that probability should be as
+high as possible.
+
+Our mission is to maximize the product of all p(f|e,m). But we have unknown t, q. What to do?
+
+And, L(t, q) is not a convex function.
+
+We have guarantees that EM algorithm will converge to a local optimum.

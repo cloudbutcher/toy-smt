@@ -1,0 +1,29 @@
+IBM MODELS 1 & 2
+
+Noisy channel approach
+We need:
+1, A language model. p(e)
+2, A translation model. p(e|f)
+
+Essentially we need to know two terms.
+q(j | i, l, m) & t(f | e).
+q means the probability of alignment variable ai taking value j, given the eng&french length l&m.
+t means words probability.
+If we get the q and t terms, we can write
+	p(f, a | e, m) = PI i = 1 to m q(ai | i, l, m) t(fi | e_ai)
+This is model 2.
+
+And why is it not good enough? What assumptions we make in this model?
+Well, we simply assumes that the distribution of random variable A is only dependent of two lengths l, m.
+Of course this is not sufficient.
+
+But we could use it to retrieve best alignments.
+
+First we consider fully observed data. Which means, besides the corresponding sentences, we also know their alignments.
+Then things get easy. t term will be the count of e aligned to f / count e aligned to anything.
+q term will be the count of word i in French is aligned to jth in English / count of all alignments given l & m.
+
+Then consider partially observed data.
+First we initialize t & q to some random values. And we read in some value, compile some counts and estimate t & q based on
+what we know. A little bit like reinforcement learning.
+Go look at the figure at ibm12.pdf.

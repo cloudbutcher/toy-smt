@@ -1,0 +1,7 @@
+You classifier don't see your email directly.
+Feature vector is what classifier see directly.
+
+Weight vector points to the direction it LIKED most.
+If a feature vector points at roughly the same direction as it does, well it seems likely that it will be accepted.
+
+Decision boundry is orthogonal to weight vector.
